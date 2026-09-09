@@ -10,38 +10,31 @@ bot.on('message', async (msg) => {
   const userMessage = msg.text;
   const chatId = msg.chat.id;
 
+  console.log(`📨 Mensagem: "${userMessage}"`);
+  bot.sendChatAction(chatId, 'typing');
+
   try {
-    if (userMessage.toLowerCase().includes('crie') || 
-        userMessage.toLowerCase().includes('site')) {
-      
-      bot.sendMessage(chatId, '⏳ Gerando site...');
-
-      // Envia descrição COMPLETA para Lovable
-      const prompt = `Gere um HTML COMPLETO para: ${userMessage}
-
-Retorne APENAS código HTML com <!DOCTYPE>, <html>, <head>, <body>, <style>, <script>.
-Sem explicações. Código pronto para funcionar.`;
-
-      const response = await axios.post(lovableUrl, 
-        { message: prompt },
-        { headers: { 'Content-Type': 'application/json' }, timeout: 30000 }
-      );
-
-      const reply = response.data.response;
-
-      if (reply && reply.includes('<!DOCTYPE')) {
-        bot.sendMessage(chatId, '✅ Pronto!\n\nAbra: https://codepen.io/pen/\nCole em "HTML"');
-        bot.sendMessage(chatId, `\`\`\`html\n${reply.substring(0, 4000)}\n\`\`\``);
-      } else {
-        bot.sendMessage(chatId, '❌ Tente novamente');
+    // Envia DIRETO para Lovable
+    const response = await axios.post(
+      lovableUrl,
+      { message: userMessage },
+      { 
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 15000
       }
+    );
 
+    const reply = response.data.response;
+    
+    if (reply) {
+      bot.sendMessage(chatId, reply);
     } else {
-      bot.sendMessage(chatId, '✨ Diga: Crie um site de pizza');
+      bot.sendMessage(chatId, 'Sem resposta');
     }
 
   } catch (error) {
-    bot.sendMessage(chatId, '❌ Erro');
+    console.error('Erro:', error.message);
+    bot.sendMessage(chatId, '❌ Erro ao conectar');
   }
 });
 
